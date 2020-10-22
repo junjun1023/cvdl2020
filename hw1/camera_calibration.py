@@ -117,5 +117,45 @@ class CameraCalibration():
         cv2.destroyAllWindows()
 
 
-c = CameraCalibration('./Q2_Image/')
-c.augmented_reality()
+    def stereo_disparitymap(self):
+        from matplotlib import pyplot as plt
+        imgL = cv2.imread(self.path + 'imL.png', 0)
+        imgR = cv2.imread(self.path + 'imR.png', 0)
+        stereo = cv2.StereoBM_create(numDisparities=16, blockSize=15)
+        disparity = stereo.compute(imgL, imgR)
+        plt.imshow(disparity, 'gray')
+        plt.show()
+
+
+    def sift_keypoint(self):
+        from matplotlib import pyplot as plt
+        # read images
+        img1 = cv2.imread(self.path + 'Aerial1.jpg')
+        img2 = cv2.imread(self.path + 'Aerial2.jpg')
+
+        img1_gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+        img2_gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+
+        # sift
+        sift = cv2.SIFT_create()
+
+        self.keypoints_1, descriptors_1 = sift.detectAndCompute(img1_gray, None)
+        self.keypoints_2, descriptors_2 = sift.detectAndCompute(img2_gray, None)
+
+        img_1 = cv2.drawKeypoints(img1_gray, self.keypoints_1, img1)
+        plt.imshow(img_1)
+
+        # feature matching
+        bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+
+        matches = bf.match(descriptors_1, descriptors_2)
+        self.matches = sorted(matches, key=lambda x: x.distance)
+        print(self.matches[0])
+        # img3 = cv2.drawMatches(img1, self.keypoints_1, img2, self.keypoints_2, matches[:6], img2, flags=2)
+        # plt.imshow(img3)
+        plt.show()
+
+
+
+c = CameraCalibration('./Q4_Image/')
+c.sift_keypoint()
