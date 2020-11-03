@@ -5,11 +5,19 @@ import glob
 
 class CameraCalibration():
     # Arrays to store object points and image points from all the images.
-    objpoints = []  # 3d point in real world space
-    imgpoints = []  # 2d points in image plane.
 
     width = 1000
     height = 800
+    objpoints = []
+    imgpoints = []
+    mtx = []
+    dist = []
+    rvecs = []
+    tvecs = []
+    kp1 = None
+    kp2 = None
+    des1 = None
+    des2 = None
 
     def __init__(self, path):
         self.path = path
@@ -23,13 +31,14 @@ class CameraCalibration():
         objp = np.zeros((11 * 8, 3), np.float32)
         objp[:, :2] = np.mgrid[0:11, 0:8].T.reshape(-1, 2)
 
-        # Arrays to store object points and image points from all the images.
-        # objpoints = []  # 3d point in real world space
-        # imgpoints = []  # 2d points in image plane.
-
         images = glob.glob(self.path + '*.bmp')
 
         for fname in images:
+
+            # Arrays to store object points and image points from all the images.
+            self.objpoints = []  # 3d point in real world space
+            self.imgpoints = []  # 2d points in image plane.
+
             img = cv2.imread(fname)
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -52,13 +61,14 @@ class CameraCalibration():
                     cv2.imshow('img', img_resize)
                     cv2.waitKey(500)
 
-        cv2.destroyAllWindows()
-
-        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(self.objpoints, self.imgpoints, gray.shape[::-1], None, None)
+        _, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(self.objpoints, self.imgpoints, gray.shape[::-1],
+                                                         None, None)
         self.mtx = mtx
         self.dist = dist
         self.rvecs = rvecs
         self.tvecs = tvecs
+
+        cv2.destroyAllWindows()
 
     def _draw(self, img, corners, imgpts):
         imgpts = np.int32(imgpts).reshape(-1, 2)
@@ -69,7 +79,6 @@ class CameraCalibration():
         img = cv2.line(img, tuple(imgpts[1].ravel()), tuple(imgpts[2].ravel()), (0, 0, 255), 5)
         img = cv2.line(img, tuple(imgpts[1].ravel()), tuple(imgpts[3].ravel()), (0, 0, 255), 5)
         img = cv2.line(img, tuple(imgpts[2].ravel()), tuple(imgpts[3].ravel()), (0, 0, 255), 5)
-
 
         # img = cv2.drawContours(img, [imgpts], -1, (0, 0, 255), 5)
         return img
@@ -116,7 +125,6 @@ class CameraCalibration():
 
         cv2.destroyAllWindows()
 
-
     def stereo_disparitymap(self):
         from matplotlib import pyplot as plt
         imgL = cv2.imread(self.path + 'imL.png', 0)
@@ -125,7 +133,6 @@ class CameraCalibration():
         disparity = stereo.compute(imgL, imgR)
         plt.imshow(disparity, 'gray')
         plt.show()
-
 
     def sift_keypoint(self):
         from matplotlib import pyplot as plt
@@ -139,23 +146,42 @@ class CameraCalibration():
         # sift
         sift = cv2.SIFT_create()
 
-        self.keypoints_1, descriptors_1 = sift.detectAndCompute(img1_gray, None)
-        self.keypoints_2, descriptors_2 = sift.detectAndCompute(img2_gray, None)
+        kp1 = sift.detect(img1_gray, None)
+        kp2 = sift.detect(img2_gray, None)
 
-        img_1 = cv2.drawKeypoints(img1_gray, self.keypoints_1, img1)
-        plt.imshow(img_1)
+        kp1.sort(key=lambda x: x.size, reverse=True)
+        kp2.sort(key=lambda x: x.size, reverse=True)
 
-        # feature matching
+        self.kp1 = kp1[:7]
+        self.kp2 = kp2[:7]
+
+        _, self.des1 = sift.compute(img1_gray, self.kp1)
+        _, self.des2 = sift.compute(img2_gray, self.kp2)
+
+        img = cv2.drawKeypoints(img1_gray, self.kp1, img1_gray, flags=cv2.DrawMatchesFlags_DRAW_RICH_KEYPOINTS)
+
+        cv2.imshow('img', img)
+        cv2.waitKey(1500)
+        cv2.destroyAllWindows()
+
+
+    def draw_sift_match(self):
+        from matplotlib import pyplot as plt
+        img1 = cv2.imread(self.path + 'Aerial1.jpg')
+        img2 = cv2.imread(self.path + 'Aerial2.jpg')
+
+        img1_gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+        img2_gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+
         bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
 
-        matches = bf.match(descriptors_1, descriptors_2)
-        self.matches = sorted(matches, key=lambda x: x.distance)
-        print(self.matches[0])
-        # img3 = cv2.drawMatches(img1, self.keypoints_1, img2, self.keypoints_2, matches[:6], img2, flags=2)
-        # plt.imshow(img3)
+        matches = bf.match(self.des1, self.des2)
+        matches = sorted(matches, key=lambda x: x.distance)
+        img3 = cv2.drawMatches(img1_gray, self.kp1, img2_gray, self.kp2, matches[:6], img2_gray, flags=2)
+        plt.imshow(img3)
         plt.show()
 
 
-
-c = CameraCalibration('./Q4_Image/')
-c.sift_keypoint()
+# c = CameraCalibration('./Q4_Image/')
+# c.sift_keypoint()
+# c.draw_sift_match()
