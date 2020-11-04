@@ -239,7 +239,7 @@ class MainWindow(QMainWindow):
         # calibration.chessboard_corner_detection(False)
 
         index = self.q1_combobox_3.currentIndex()
-        print(self.q1_calibration.rvecs)
+
         rvecs = self.q1_calibration.rvecs[index]
         tvecs = self.q1_calibration.tvecs[index]
 
