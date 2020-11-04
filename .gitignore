@@ -1,3 +1,7 @@
+*.idea/
+models/.ipynb_checkpoints
+models/vgg16_adma_batch32.pth
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
