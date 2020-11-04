@@ -1,4 +1,4 @@
-hw1/*.idea/
+hw1/*.idea
 hw1/models/.ipynb_checkpoints
 hw1/models/vgg16_adma_batch32.pth
 hw1/data
