@@ -1,3 +1,4 @@
+
 hw1/*.idea
 
 hw1/models/vgg16_adma_batch32.pth
@@ -132,6 +133,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
 /hw1/models/data/
 /hw1/models/.ipynb_checkpoints
 /hw1/models/vgg16_adma_batch32.pth
+

@@ -8,6 +8,7 @@ from .trainer import Trainer
 import numpy as np
 import json
 
+
 class TrainerWithKFoldCrossValidation(Trainer):
     def __init__(self, model, optimizer, trainset, testset, save_name, path, kfold=5, batch=16, num_workers=2,
                  criterion=nn.CrossEntropyLoss(), epoch=2):
@@ -39,12 +40,14 @@ class TrainerWithKFoldCrossValidation(Trainer):
             epoch_loss_list = []
             epoch_tacc_list = []
 
+
             # For each k validation
             for valid_index, validation_set in enumerate(split_trainset, 0):
 
                 kth_loss_list = []
                 kth_acc_list = []
                 kth_tacc_list = []
+
 
                 valid_loader = torch.utils.data.DataLoader(validation_set, batch_size=self.batch, shuffle=True,
                                                            num_workers=self.num_workers)
@@ -63,6 +66,7 @@ class TrainerWithKFoldCrossValidation(Trainer):
                     mini_loss_list = []
                     mini_acc_list = []
                     mini_tacc_list = []
+
                     for index, data in enumerate(train_loader, 0):
                         # get the inputs; data is a list of [inputs, labels]
                         inputs, labels = data
@@ -100,6 +104,7 @@ class TrainerWithKFoldCrossValidation(Trainer):
                                     _, predicted = torch.max(outputs.data, 1)
                                     total += labels.size(0)
                                     correct += (predicted == labels).sum().item()
+
                                 mini_tacc_list.append(100 * correct / total)
                                 print('Train Acc: %d %%' % (100 * correct / total))
 
@@ -113,11 +118,13 @@ class TrainerWithKFoldCrossValidation(Trainer):
                                     _, predicted = torch.max(outputs.data, 1)
                                     total += labels.size(0)
                                     correct += (predicted == labels).sum().item()
+
                                 mini_acc_list.append(100 * correct / total)
                                 print('Accuracy: %d %%' % (100 * correct / total))
 
                     kth_loss_list.append(mini_loss_list)
                     kth_acc_list.append(mini_acc_list)
+
                     kth_tacc_list.append((mini_tacc_list))
 
                 epoch_loss_list.append(kth_loss_list)
@@ -141,5 +148,6 @@ class TrainerWithKFoldCrossValidation(Trainer):
                 'tacc': list(epoch_tacc)
             }
             json.dump(epoch_info, fp)
+
 
         print('Finished Training')

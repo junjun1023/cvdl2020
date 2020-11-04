@@ -3,8 +3,10 @@ import torchvision
 import torchvision.transforms as transforms
 from torchsummary import summary
 import torch.optim as optim
-from vgg16 import _Vgg16, Block
-from trainer.trainer_kfold import TrainerWithKFoldValidation
+
+from .vgg16 import _Vgg16, Block
+from .trainer.trainer_kfold import TrainerWithKFoldValidation
+
 
 BATCH_SIZE = 32
 EPOCH = 50

@@ -4,8 +4,10 @@ import torch.nn as nn
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 from .trainer import Trainer
+
 import numpy as np
 import json
+
 
 class TrainerWithKFoldValidation(Trainer):
     def __init__(self, model, optimizer, trainset, testset, save_name, path, kfold=5, batch=16, num_workers=2,
@@ -96,6 +98,7 @@ class TrainerWithKFoldValidation(Trainer):
             self.epoch_acc.append(mini_acc_list)
             self.epoch_loss.append(mini_loss_list)
             self.epoch_tacc.append(mini_tacc_list)
+
 
         self.saving()
 

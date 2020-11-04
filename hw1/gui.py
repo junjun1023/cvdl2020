@@ -30,7 +30,6 @@ class MainWindow(QMainWindow):
     testloader = torch.utils.data.DataLoader(testset, batch_size=10,
                                              shuffle=False, num_workers=2)
 
-
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
@@ -276,7 +275,6 @@ class MainWindow(QMainWindow):
     def func_q4_match(self):
         self.q4_calibration.draw_sift_match()
 
-
     def _imshow(self, imgs, labels):
         import matplotlib.pyplot as plt
         classes = ('plane', 'car', 'bird', 'cat',
@@ -349,7 +347,6 @@ class MainWindow(QMainWindow):
         model_stat = checkpoint['model_stat']
         model = _Vgg16.load_state_dict(model_stat)
         model.eval()
-
 
 
 

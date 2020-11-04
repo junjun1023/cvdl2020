@@ -62,7 +62,9 @@ class Trainer():
                     mini_loss = 0.0
 
             self.epoch_loss.append(mini_loss_list)
+
         self.saving(e)
+
 
     def testing(self):
         testloader = torch.utils.data.DataLoader(self.testset, batch_size=self.batch,
@@ -90,6 +92,7 @@ class Trainer():
             'optimizer_stat': self.optimizer.state_dict(),
             'loss': self.criterion.state_dict(),
         }
+
         path = self.path + self.save_name
 
         if epoch is not None:
