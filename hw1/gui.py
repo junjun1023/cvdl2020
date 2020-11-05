@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
 
     testset = torchvision.datasets.CIFAR10(root='./models/data', train=False,
                                            download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=10,
+    testloader = torch.utils.data.DataLoader(testset, batch_size=1,
                                              shuffle=False, num_workers=2)
 
     def __init__(self, *args, **kwargs):
@@ -210,9 +210,20 @@ class MainWindow(QMainWindow):
         q5_questions_layout.addWidget(self.q5_button_4)
 
         ##### Q5.5 Inference
+        q5_5_box_layout = QVBoxLayout()
+        q5_5_box_container = QWidget()
+        q5_5_box_container.setLayout(q5_5_box_layout)
+        #
+        self.q5_combobox_5 = QComboBox()
+        for i in range(1, 10001):
+            self.q5_combobox_5.addItem(str(i))
+        q5_5_box_layout.addWidget(self.q5_combobox_5)
+        #
         self.q5_button_5 = QPushButton('Inference')
         self.q5_button_5.clicked.connect(self.func_q5_inference)
-        q5_questions_layout.addWidget(self.q5_button_5)
+        q5_5_box_layout.addWidget(self.q5_button_5)
+
+        q5_questions_layout.addWidget(q5_5_box_container)
 
         q5_box_layout.addWidget(q5_questions_widget)
 
@@ -303,7 +314,7 @@ class MainWindow(QMainWindow):
 
 
     def func_q5_loadImage(self):
-        dataiter = iter(self.testloader)
+        dataiter = iter(self.trainloader)
         images, labels = dataiter.next()
         self._imshow(images, labels)
 
@@ -348,11 +359,46 @@ class MainWindow(QMainWindow):
 
     def func_q5_inference(self):
         import torch
-        from models.vgg16 import _Vgg16
+        from models.vgg16 import _Vgg16, Block
+        import matplotlib.pyplot as plt
+
+        classes = ('plane', 'car', 'bird', 'cat',
+                   'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
         checkpoint = torch.load('./models/vgg16_adma_batch32.pth')
+        # print(checkpoint.keys())
         model_stat = checkpoint['model_stat']
-        model = _Vgg16.load_state_dict(model_stat)
+        model = _Vgg16(Block, [2, 2, 3, 3, 3])
+        model.load_state_dict(model_stat)
         model.eval()
+
+        index = self.q5_combobox_5.currentIndex()
+        image, label = self.testset[index-1]
+        image = torch.unsqueeze(image, 0)
+        outputs = model(image)
+        outputs = torch.nn.Softmax(1)(outputs)
+        print(outputs)
+        fig = plt.figure(figsize=(2, 1))
+        fig.set_size_inches(12, 5)
+        axs = []
+
+        image = image.numpy()
+        image = np.transpose(image[0], (1, 2, 0))
+        axs.append(fig.add_subplot(1, 2, 1))
+        axs[-1].set_title('image')
+        plt.imshow(image)
+
+        outputs = outputs.detach().numpy().flatten()
+        # print(outputs)
+        axs.append(fig.add_subplot(1, 2, 2))
+        axs[-1].set_title('predict')
+        plt.bar(classes, outputs)
+
+
+        plt.show()
+
+
+
 
 
 
