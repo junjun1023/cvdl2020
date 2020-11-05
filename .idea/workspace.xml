@@ -22,13 +22,6 @@
     <list default="true" id="cdc8e87c-ad3e-4597-9353-a51d1e286cb8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hw1/camera_calibration.py" beforeDir="false" afterPath="$PROJECT_DIR$/hw1/camera_calibration.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hw1/gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/hw1/gui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hw1/models/model.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/hw1/models/model.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hw1/models/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/hw1/models/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hw1/models/trainer/trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/hw1/models/trainer/trainer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hw1/models/trainer/trainer_kfold.py" beforeDir="false" afterPath="$PROJECT_DIR$/hw1/models/trainer/trainer_kfold.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hw1/models/trainer/trainer_kfold_cross.py" beforeDir="false" afterPath="$PROJECT_DIR$/hw1/models/trainer/trainer_kfold_cross.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +56,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1604502920234</updated>
-      <workItem from="1604502921279" duration="4438000" />
+      <workItem from="1604502921279" duration="5417000" />
     </task>
     <servers />
   </component>
