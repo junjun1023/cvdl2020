@@ -188,7 +188,7 @@ class MainWindow(QMainWindow):
         # q5_questions_layout.addWidget(q5_2_box_widget)
 
         ##### Q5.2 Hyper params
-        self.q5_button_2 = QPushButton('Model Structure')
+        self.q5_button_2 = QPushButton('Hyper Params')
         self.q5_button_2.clicked.connect(self.func_q5_hyperparams)
         q5_questions_layout.addWidget(self.q5_button_2)
 
