@@ -5,6 +5,9 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 from .trainer import Trainer
 
+import numpy as np
+import json
+
 
 class TrainerWithKFoldValidation(Trainer):
     def __init__(self, model, optimizer, trainset, testset, save_name, path, kfold=5, batch=16, num_workers=2,
@@ -95,6 +98,22 @@ class TrainerWithKFoldValidation(Trainer):
             self.epoch_acc.append(mini_acc_list)
             self.epoch_loss.append(mini_loss_list)
             self.epoch_tacc.append(mini_tacc_list)
-            self.saving(epoch=e)
+
+
+        self.saving()
+
+        epoch_acc = np.array(self.epoch_acc).flatten()
+        epoch_loss = np.array(self.epoch_loss).flatten()
+        epoch_tacc = np.array(self.epoch_tacc).flatten()
+
+        with open('epoch.json', 'w') as fp:
+            epoch_info = {
+                'acc': list(epoch_acc),
+                'loss': list(epoch_loss),
+                'tacc': list(epoch_tacc)
+            }
+            json.dump(epoch_info, fp)
+
+
 
         print('Finished Training')

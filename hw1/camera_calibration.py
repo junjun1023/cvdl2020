@@ -68,6 +68,7 @@ class CameraCalibration():
 
         cv2.destroyAllWindows()
 
+
     def _draw(self, img, corners, imgpts):
         imgpts = np.int32(imgpts).reshape(-1, 2)
 

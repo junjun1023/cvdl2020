@@ -5,6 +5,9 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 from .trainer import Trainer
 
+import numpy as np
+import json
+
 
 class TrainerWithKFoldCrossValidation(Trainer):
     def __init__(self, model, optimizer, trainset, testset, save_name, path, kfold=5, batch=16, num_workers=2,
@@ -35,12 +38,16 @@ class TrainerWithKFoldCrossValidation(Trainer):
 
             epoch_acc_list = []
             epoch_loss_list = []
+            epoch_tacc_list = []
+
 
             # For each k validation
             for valid_index, validation_set in enumerate(split_trainset, 0):
 
                 kth_loss_list = []
                 kth_acc_list = []
+                kth_tacc_list = []
+
 
                 valid_loader = torch.utils.data.DataLoader(validation_set, batch_size=self.batch, shuffle=True,
                                                            num_workers=self.num_workers)
@@ -58,6 +65,7 @@ class TrainerWithKFoldCrossValidation(Trainer):
 
                     mini_loss_list = []
                     mini_acc_list = []
+                    mini_tacc_list = []
 
                     for index, data in enumerate(train_loader, 0):
                         # get the inputs; data is a list of [inputs, labels]
@@ -96,18 +104,50 @@ class TrainerWithKFoldCrossValidation(Trainer):
                                     _, predicted = torch.max(outputs.data, 1)
                                     total += labels.size(0)
                                     correct += (predicted == labels).sum().item()
+
+                                mini_tacc_list.append(100 * correct / total)
+                                print('Train Acc: %d %%' % (100 * correct / total))
+
+                                correct = 0
+                                total = 0
+                                for data in valid_loader:
+                                    images, labels = data
+                                    images = images.to(device)
+                                    labels = labels.to(device)
+                                    outputs = self.model(images)
+                                    _, predicted = torch.max(outputs.data, 1)
+                                    total += labels.size(0)
+                                    correct += (predicted == labels).sum().item()
+
                                 mini_acc_list.append(100 * correct / total)
                                 print('Accuracy: %d %%' % (100 * correct / total))
 
                     kth_loss_list.append(mini_loss_list)
                     kth_acc_list.append(mini_acc_list)
 
+                    kth_tacc_list.append((mini_tacc_list))
+
                 epoch_loss_list.append(kth_loss_list)
                 epoch_acc_list.append(kth_acc_list)
+                epoch_tacc_list.append(kth_tacc_list)
 
             self.epoch_acc.append(epoch_acc_list)
             self.epoch_loss.append(epoch_loss_list)
+            self.epoch_tacc.append(epoch_tacc_list)
 
-            self.saving(epoch=e)
+        self.saving()
+
+        epoch_acc = np.array(self.epoch_acc).flatten()
+        epoch_loss = np.array(self.epoch_loss).flatten()
+        epoch_tacc = np.array(self.epoch_tacc).flatten()
+
+        with open('epoch.json', 'w') as fp:
+            epoch_info = {
+                'acc': list(epoch_acc),
+                'loss': list(epoch_loss),
+                'tacc': list(epoch_tacc)
+            }
+            json.dump(epoch_info, fp)
+
 
         print('Finished Training')
