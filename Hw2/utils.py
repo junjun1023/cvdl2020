@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import sklearn
 
 def background_subtraction(path="./Q1_Image/bgSub.mp4"):
     cap = cv2.VideoCapture(path)
@@ -155,7 +156,7 @@ def video_tracking(path="./Q2_Image/opticalFlow.mp4"):
                     y = keypoint.pt[1]
                     p0.append([x, y])
                 p0 = np.array(p0, dtype='float32')
-                print(p0.shape)
+
                 p0 = p0[:, np.newaxis, :]
 
 
@@ -181,8 +182,6 @@ def video_tracking(path="./Q2_Image/opticalFlow.mp4"):
                 if k == 27:
                     break
 
-                # Now update the previous frame and previous points
-                # p0 = good_new.reshape(-1, 1, 2)
                 prev_frame = frame
                 p0 = p1
 
@@ -198,5 +197,135 @@ def video_tracking(path="./Q2_Image/opticalFlow.mp4"):
             # we stop
             # break
 
+
+
+def perspective_transform(path="./Q3_Image/test4perspective.mp4", img_path="./Q3_Image/rl.jpg"):
+    cap = cv2.VideoCapture(path)
+    pos_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
+
+    im_src = cv2.imread(img_path)
+
+    while True:
+        flag, frame = cap.read()
+        if flag:
+            # The frame is ready and already captured
+            # cv2.imshow('video', frame)
+            # frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            pos_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
+
+            # Load the dictionary that was used to generate the markers
+            dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
+
+            # Initialize the detector parameters using default values
+            parameters = cv2.aruco.DetectorParameters_create()
+
+            # Detect he markers in the image
+            markerCorners, markerIds, rejectedCandidates = cv2.aruco.detectMarkers(frame, dictionary, parameters=parameters)
+
+            if len(markerIds) < 4:
+                continue
+
+
+            ### Id = 25
+            index = np.squeeze(np.where(markerIds == 25))
+            refPt1 = np.squeeze(markerCorners[index[0]])[1]
+
+            ### Id = 33
+            index = np.squeeze(np.where(markerIds == 33))
+            refPt2 = np.squeeze(markerCorners[index[0]])[2]
+
+            distance = np.linalg.norm(refPt1-refPt2)
+
+            scalingFac = 0.02
+
+            pts_dst = [
+                [refPt1[0] - round(scalingFac*distance), refPt1[1] - round(scalingFac*distance)]
+            ]
+            pts_dst = pts_dst + [
+                [refPt2[0] + round(scalingFac*distance), refPt2[1] - round(scalingFac*distance)]
+            ]
+
+
+            ### Id = 30
+            index = np.squeeze(np.where(markerIds == 30))
+            refPt3 = np.squeeze(markerCorners[index[0]])[0]
+            pts_dst = pts_dst + [
+                [refPt3[0] + round(scalingFac * distance), refPt3[1] + round(scalingFac * distance)]
+            ]
+
+            ### Id = 23
+            index = np.squeeze(np.where(markerIds == 23))
+            refPt4 = np.squeeze(markerCorners[index[0]])[0]
+            pts_dst = pts_dst + [
+                [refPt4[0] - round(scalingFac*distance), refPt4[1] + round(scalingFac*distance)]
+            ]
+
+            pts_src = [
+                [0, 0],
+                [im_src.shape[1], 0],
+                [im_src.shape[1], im_src.shape[0]],
+                [0, im_src.shape[0]]
+            ]
+
+            retval, mask = cv2.findHomography(np.array(pts_src, dtype='float32'), np.array(pts_dst, dtype='float32'))
+            dst = cv2.warpPerspective(im_src, retval, dsize=(frame.shape[1], frame.shape[0]))
+
+            img = cv2.add(frame, dst)
+            cv2.imshow("Keypoints", img)
+            cv2.waitKey(1000//30)
+
+        else:
+            # The next frame is not ready, so we try to read it again
+            # cap.set(cv2.CAP_PROP_POS_FRAMES, pos_frame - 1)
+            # It is better to wait for a while for the next frame to be ready
+            # cv2.waitKey(1000)
+            break
+
+
+
+def pca_reconstruction(dir_path="./Q4_Image/"):
+    # https://medium.com/@sebastiannorena/pca-principal-components-analysis-applied-to-images-of-faces-d2fc2c083371
+    from sklearn.decomposition import PCA
+    import os
+    import pandas as pd
+
+    dirs = os.listdir(path=dir_path)
+    imgs = pd.DataFrame([])
+    _shape = []
+
+    for file in dirs:
+        img = cv2.imread(dir_path + file)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = img.astype(np.uint8)
+        img = img / 255
+
+        imgs.append( pd.Series(img.flatten(), name=file) )
+        _shape.append(img.shape)
+        # cv2.imshow('img', img)
+        # cv2.waitKey(50)
+
+    # plt
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(3, 10, figsize=(9, 9), subplot_kw={'xticks': [], 'yticks': []}, gridspec_kw = dict(hspace=0.01, wspace=0.01))
+    for i, ax in enumerate(axes.flat):
+        ax.imshow(imgs.iloc[i].values.reshape(100, 100), cmap="gray")
+
+    imgs = np.array(imgs)
+    pca = PCA(n_components=2)
+    pca.fit_transform(imgs)
+
+    print(pca.explained_variance_ratio_)
+    print(pca.singular_values_)
+
+    print(len(pca.components_))
+    cv2.imshow('eigen vector', pca.components_[1].reshape(_shape[1][0], _shape[1][1]) )
+    cv2.waitKey()
+
+
+
+
 # background_subtraction()
-video_tracking()
+# optical_flow()
+# video_tracking()
+# perspective_transform()
+pca_reconstruction()
