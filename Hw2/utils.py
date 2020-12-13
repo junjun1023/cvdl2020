@@ -2,6 +2,29 @@ import cv2
 import numpy as np
 import sklearn
 
+def img_show(imgs, imgs2=None):
+    import matplotlib.pyplot as plt
+    num_imgs = len(imgs)
+
+    # using the variable axs for multiple Axes
+    # fig, axs = plt.subplots(1 if imgs2 is None else 2, num_imgs)
+
+    fig = plt.figure(figsize=(80, 100))
+    axs = []
+    for index, img in enumerate(imgs):
+        axs.append(fig.add_subplot(2, len(imgs), index+1))
+        fig_ = plt.imshow(img, 'gray')
+        fig_.axes.get_xaxis().set_visible(False)
+        fig_.axes.get_yaxis().set_visible(False)
+
+    for index, img in enumerate(imgs2):
+        axs.append(fig.add_subplot(1, len(imgs2), index+1))
+        fig_ = plt.imshow(img, 'gray')
+        fig_.axes.get_xaxis().set_visible(False)
+        fig_.axes.get_yaxis().set_visible(False)
+    plt.show()
+
+
 def background_subtraction(path="./Q1_Image/bgSub.mp4"):
     cap = cv2.VideoCapture(path)
     pos_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
@@ -283,43 +306,66 @@ def perspective_transform(path="./Q3_Image/test4perspective.mp4", img_path="./Q3
 
 
 
-def pca_reconstruction(dir_path="./Q4_Image/"):
-    # https://medium.com/@sebastiannorena/pca-principal-components-analysis-applied-to-images-of-faces-d2fc2c083371
-    from sklearn.decomposition import PCA
-    import os
-    import pandas as pd
+class cvdl_pca():
 
-    dirs = os.listdir(path=dir_path)
-    imgs = pd.DataFrame([])
-    _shape = []
+    origin_imgs = None
+    inversed_imgs = None
 
-    for file in dirs:
-        img = cv2.imread(dir_path + file)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img = img.astype(np.uint8)
-        img = img / 255
+    def pca_reconstruction(self, dir_path="./Q4_Image/", p=True):
+        # https://medium.com/@sebastiannorena/pca-principal-components-analysis-applied-to-images-of-faces-d2fc2c083371
+        from sklearn.decomposition import PCA
+        import os
+        import pandas as pd
 
-        imgs.append( pd.Series(img.flatten(), name=file) )
-        _shape.append(img.shape)
-        # cv2.imshow('img', img)
-        # cv2.waitKey(50)
+        dirs = os.listdir(path=dir_path)
+        origin_imgs = []
+        imgs = pd.DataFrame([])
+        _shape = []
 
-    # plt
-    import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(3, 10, figsize=(9, 9), subplot_kw={'xticks': [], 'yticks': []}, gridspec_kw = dict(hspace=0.01, wspace=0.01))
-    for i, ax in enumerate(axes.flat):
-        ax.imshow(imgs.iloc[i].values.reshape(100, 100), cmap="gray")
+        for file in dirs:
+            img = cv2.imread(dir_path + file)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            origin_imgs.append(img)
+            img = img.astype(np.uint8)
+            img = img / 255
 
-    imgs = np.array(imgs)
-    pca = PCA(n_components=2)
-    pca.fit_transform(imgs)
+            imgs = imgs.append( pd.Series(img.flatten(), name=file) )
+            _shape.append(img.shape)
 
-    print(pca.explained_variance_ratio_)
-    print(pca.singular_values_)
 
-    print(len(pca.components_))
-    cv2.imshow('eigen vector', pca.components_[1].reshape(_shape[1][0], _shape[1][1]) )
-    cv2.waitKey()
+        self.origin_imgs = np.array(origin_imgs)
+
+
+        imgs = np.array(imgs)
+
+        pca = PCA(n_components=0.75)
+        reduced_imgs = pca.fit_transform(imgs)
+        inversed_imgs = pca.inverse_transform(reduced_imgs)
+        inversed_imgs = np.reshape(inversed_imgs, (-1, 100, 100))
+
+        self.inversed_imgs = inversed_imgs
+
+        if p:
+            img_show(origin_imgs, inversed_imgs)
+
+
+    def reconstruction_error(self):
+
+        if self.origin_imgs is None or self.inversed_imgs is None:
+            self.pca_reconstruction(p=False)
+            # print(len(self.origin_imgs), len(self.inversed_imgs))
+
+        origin_imgs = self.origin_imgs * 255
+        inversed_imgs = self.inversed_imgs * 255
+        #
+        # print(inversed_imgs.shape)
+        # print(origin_imgs.shape)
+
+        res = []
+        for index, origin_img in enumerate(origin_imgs):
+            re = np.linalg.norm(inversed_imgs[index]-origin_img)
+            res.append(re)
+        print(res)
 
 
 
@@ -328,4 +374,7 @@ def pca_reconstruction(dir_path="./Q4_Image/"):
 # optical_flow()
 # video_tracking()
 # perspective_transform()
-pca_reconstruction()
+# pca_reconstruction()
+
+a = cvdl_pca()
+a.reconstruction_error()
