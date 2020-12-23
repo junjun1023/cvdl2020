@@ -1,6 +1,7 @@
 .vscode
 .ipynb_checkpoints
 .idea/
+*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
